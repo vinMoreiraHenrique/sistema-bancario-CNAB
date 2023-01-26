@@ -1,12 +1,14 @@
 from django.shortcuts import render, redirect
 from django.http import HttpResponse
-from .forms import form_transactions
+from .forms import Form_transactions
 from .models import FileModel
 import datetime
+from django.views import View
+from django.db.models import Sum
 
 
 def home(request):
-    form = form_transactions()
+    form = Form_transactions()
     return render(request, "home.html", {"form": form})
 
 
@@ -14,16 +16,21 @@ def form_processing(request):
     return HttpResponse("test")
 
 
+def get_from_database(request):
+    if request.method == "GET":
+        Form_transactions.objects.all()
+
+
 def save_file_content(request):
     if request.method == "POST":
-        form = form_transactions(request.POST, request.FILES)
+        form = Form_transactions(request.POST, request.FILES)
         if form.is_valid():
             file = request.FILES["file"]
             for chunk in file.chunks():
                 for line in chunk.decode().splitlines():
                     tipo = line[:1]
                     data = datetime.datetime.strptime(str(line[1:9]), "%Y%m%d").date()
-                    valor = line[9:19]
+                    valor = int(line[9:19]) / 100
                     cpf = line[19:30]
                     cartao = line[30:42]
                     hora = line[42:48]
@@ -42,5 +49,15 @@ def save_file_content(request):
                     saved_file.save()
 
     else:
-        form = form_transactions()
+        form = Form_transactions()
     return render(request, "home.html", {"form": form})
+
+
+def list_stores_saldo(request):
+    store_saldo = FileModel.objects.values("nome_da_loja").annotate(
+        total_saldo=Sum("valor")
+    )
+    store_saldo_debit = FileModel.objects.values("tipo").annotate(
+            total_saldo_debit=Sum()
+    )
+    return render(request, "store_saldo.html", {"store_saldo": store_saldo})

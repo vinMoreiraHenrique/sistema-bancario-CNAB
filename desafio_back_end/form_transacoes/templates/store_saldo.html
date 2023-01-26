@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Save File</title>
+</head>
+
+<body>
+    <table>
+        <thead>
+            <tr>
+                <th>Store Name</th>
+                <th>Total Saldo</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for store in store_saldo %}
+            <tr>
+                <td>{{ store.nome_da_loja }}</td>
+                <td>R$ {{ store.total_saldo|floatformat:2 }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+</body>
+
+</html>
