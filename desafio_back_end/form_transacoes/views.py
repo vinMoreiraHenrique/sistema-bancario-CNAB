@@ -4,7 +4,7 @@ from .forms import Form_transactions
 from .models import FileModel
 import datetime
 from django.views import View
-from django.db.models import Sum
+from django.db.models import Sum, When, Case, F
 
 
 def home(request):
@@ -54,10 +54,17 @@ def save_file_content(request):
 
 
 def list_stores_saldo(request):
-    store_saldo = FileModel.objects.values("nome_da_loja").annotate(
-        total_saldo=Sum("valor")
+    store_saldo = (
+        FileModel.objects.values("nome_da_loja")
+        .annotate(
+            total_saldo=Sum(
+                Case(
+                    When(tipo__in=[2, 3, 9], then=-F("valor")),
+                    default=F("valor"),
+                )
+            )
+        )
+        .distinct()
     )
-    store_saldo_debit = FileModel.objects.values("tipo").annotate(
-            total_saldo_debit=Sum()
-    )
+
     return render(request, "store_saldo.html", {"store_saldo": store_saldo})
